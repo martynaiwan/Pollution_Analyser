@@ -1,0 +1,57 @@
+#include <SoftwareSerial.h>
+
+SoftwareSerial O2Sensor(D32, A8);
+SoftwareSerial CO2Sensor(D1, D0);
+
+byte config[] = {0xFF, 0x01, 0x86, 0x00, 0x00, 0x00, 0x00, 0x00, 0x79};
+byte resp[9] = {};
+byte resp1[9] = {};
+float O2concentration;
+float CO2concentration;
+
+unsigned char Sum(unsigned char *i, unsigned char ln)
+{
+  unsigned char j, tem = 0;
+  i +=1;
+  for(j = 0; j < (ln -2); j++)
+  {
+    tem += *i;
+    i++;
+  }
+  tem = (~tem) + 1;
+  return (tem);
+}
+
+void setup() 
+{
+  Serial.begin(9600);
+  O2Sensor.begin(9600);
+  CO2Sensor.begin(9600);
+
+}
+
+void loop() {
+  // put your main code here, to run repeatedly:
+    O2Sensor.write(config, sizeof(config));
+    O2Sensor.readBytes(resp, sizeof(resp));
+
+    byte check = Sum(resp, sizeof(resp));
+    if(check == resp[8]){
+      O2concentration = (resp[2]*256 + resp[3])*0.1;
+      Serial.print("O2: ");
+      Serial.println(O2concentration);
+    }
+  delay(2000);
+
+   CO2Sensor.write(config, sizeof(config));
+   CO2Sensor.readBytes(resp1, sizeof(resp1));
+
+    byte check1 = Sum(resp1, sizeof(resp1));
+    if(check1 == resp1[8]){
+      CO2concentration = resp1[2]*256 + resp1[3];
+      Serial.print("CO2: ");
+      Serial.println(CO2concentration);
+    }
+  delay(2000);
+
+}
